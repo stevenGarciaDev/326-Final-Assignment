@@ -26,7 +26,7 @@ using namespace std;
 enum {shared0, shared1, shared2, shared3, shared4}; //set up names of 4 semaphores
 
 void producer_proc(SEMAPHORE &, char *);
-void parent_cleanup(SEMAPHORE &, int);
+void parent_cleanup(SEMAPHORE &, int, int, int, int);
 void consumer_proc(SEMAPHORE &, char *);
 
 const int GROUP_CHUNK_SIZE = 512;
@@ -158,6 +158,33 @@ int main(int argc, const char * argv[]) {
              cout << "Speed check value is " << speed_check << endl;
              if (speed_check < SPEED_CHECK_VALUE)
              {
+                 for (int u = 0; u < operationsAmount; u++){
+
+
+                 sem.P(shared0);
+//                 switch (i)
+//                 {
+//                 case 0:
+//                     sem.P(shared0);
+//                     break;
+//                 case 1:
+//                     sem.P(shared1);
+//                     break;
+//                 case 2:
+//                     sem.P(shared2);
+//                     break;
+//                 case 3:
+//                     sem.P(shared3);
+//                     break;
+//                 case 4:
+//                     sem.P(shared4);
+//                     break;
+//                 default:
+//                     sem.P(shared0);
+//                    break;
+
+//                 }
+
                  char* firstSegment;
                  char* secondSegment;
                  int firstChunk_indexStart;
@@ -279,7 +306,30 @@ int main(int argc, const char * argv[]) {
                  {
                      cout << secondSegment[k];
                  }
+                 sem.V(shared0);
+//                 switch (i)
+//                 {
+//                 case 0:
+//                     sem.V(shared0);
+//                     break;
+//                 case 1:
+//                     sem.V(shared1);
+//                     break;
+//                 case 2:
+//                     sem.V(shared2);
+//                     break;
+//                 case 3:
+//                     sem.V(shared3);
+//                     break;
+//                 case 4:
+//                     sem.V(shared4);
+//                     break;
+//                 default:
+//                     sem.V(shared0);
+//                    break;
+//
 
+                }
              }
 
              exit(0);
@@ -287,13 +337,17 @@ int main(int argc, const char * argv[]) {
      }
 
      wait(0);
-
+     cout<< "Parent cleanup" << endl;
+     parent_cleanup(sem, shmid1,shmid2, shmid3,shmid4);
     return 0;
 }
 
-void parent_cleanup(SEMAPHORE &sem, int shmid) {
+void parent_cleanup(SEMAPHORE &sem, int shmid1, int shmid2, int shmid3,int shmid4) {
     int status;    /* child status */
     wait(0);    /* wait for child to exit */
-    shmctl(shmid, IPC_RMID, NULL);    /* cleaning up */
+    shmctl(shmid1, IPC_RMID, NULL);    /* cleaning up */
+    shmctl(shmid2, IPC_RMID, NULL);    /* cleaning up */
+    shmctl(shmid3, IPC_RMID, NULL);    /* cleaning up */
+    shmctl(shmid4, IPC_RMID, NULL);    /* cleaning up */
     sem.remove();
 } // parent_cleanup,
