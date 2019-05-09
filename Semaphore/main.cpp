@@ -20,7 +20,6 @@
 #include <stdlib.h>     /* srand, rand */
 #include <time.h>       /* time */
 #include "semaphore.h"
-#include semaphore.cpp
 
 using namespace std;
 
@@ -106,11 +105,11 @@ int main(int argc, const char * argv[]) {
     //fork 5 child processes
     for(int i =0; i < 5; i++)
     {
-        childPID=fork();
+        long childPID=fork();
         if(childPID==0)// if it's child process, break out of the loop
         {
-            sleep(10);
-            t=i;//which process
+            sleep(5);
+            // which process
             break;
         }
     }
@@ -147,14 +146,15 @@ int main(int argc, const char * argv[]) {
     initRandomChar(sharedSegment4, SEGMENT_SIZE, true);
 
     //Create 5 processes
-    for (int i=0; i< 5 ; i++)
+    for (int i = 0; i < 5; i++)
     {
         if (fork() == 0)
         {
             printf("[child] pid %d from [parent] pid %d\n",getpid(),getppid());
 
             srand(time(0));
-            speed_check = rand();
+            int speed_check = rand();
+            cout << "Speed check value is " << speed_check << endl;
             if (speed_check < SPEED_CHECK_VALUE)
             {
                 char* firstSegment;
@@ -167,20 +167,20 @@ int main(int argc, const char * argv[]) {
 
                 switch (randomNum) {
                     case 0:
-                        firstSegment = *sharedSegment1;
+                        firstSegment = sharedSegment1;
                         break;
                     case 1:
-                        firstSegment = *sharedSegment2;
+                        firstSegment = sharedSegment2;
                         break;
                     case 2:
-                        firstSegment = *sharedSegment3;
+                        firstSegment = sharedSegment3;
                         break;
                     case 3:
-                        firstSegment = *sharedSegment4;
+                        firstSegment = sharedSegment4;
                         break;
                     default:
                         cout << "invalid random num " << randomNum << endl;
-                        firstSegment = *sharedSegment1;
+                        firstSegment = sharedSegment1;
                         break;
                 }
 
@@ -189,20 +189,20 @@ int main(int argc, const char * argv[]) {
 
                 switch (randomNum) {
                     case 0:
-                        secondSegment = *sharedSegment1;
+                        secondSegment = sharedSegment1;
                         break;
                     case 1:
-                        secondSegment = *sharedSegment2;
+                        secondSegment = sharedSegment2;
                         break;
                     case 2:
-                        secondSegment = *sharedSegment3;
+                        secondSegment = sharedSegment3;
                         break;
                     case 3:
-                        secondSegment = *sharedSegment4;
+                        secondSegment = sharedSegment4;
                         break;
                     default:
                         cout << "invalid random num " << randomNum << endl;
-                        secondSegment = *sharedSegment1;
+                        secondSegment = sharedSegment1;
                         break;
                 }
 
@@ -246,9 +246,11 @@ int main(int argc, const char * argv[]) {
 
                 // perform swap
                 for (int n = 0; n < GROUP_CHUNK_SIZE; n++) {
-                    char temp = *(firstSegment + firstChunk_indexStart + n);
-                    *(firstSegment + firstChunk_indexStart + n) = *(secondSegment + secondChunk_indexStart + n)
-                    *(secondSegment + secondChunk_indexStart + n) = temp;
+                    cout << "the value of firstSegment is " << firstSegment << endl;
+                    cout << "the memory address of firstSegment is " << &firstSegment << endl;
+                    //char temp = *(firstSegment + firstChunk_indexStart + n);
+                    //*(firstSegment + firstChunk_indexStart + n) = *(secondSegment + secondChunk_indexStart + n)
+                    //*(secondSegment + secondChunk_indexStart + n) = temp;
                 }
 
             }
