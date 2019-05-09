@@ -33,6 +33,7 @@ const int MAX_INT = std::numeric_limits<int>::max();
 const int GROUP_CHUNK_SIZE = 512;
 const int SEGMENT_SIZE = GROUP_CHUNK_SIZE * 3;
 const int TOTAL_SEGMENT_SIZE = SEGMENT_SIZE * 4;
+const int SPEED_CHECK_VALUE = 5000;
 
 int requiredOperationsAmount;               // specifies how many times to go through loop
 
@@ -151,25 +152,25 @@ int main(int argc, const char * argv[]) {
         {
             printf("[child] pid %d from [parent] pid %d\n",getpid(),getppid());
 
-            //Each process generate a random 32-bit random integer
-            //create a random integer between 0 and 2^31 -1
             srand(time(0));
             speed_check = rand();
-            if (speed_check < 5000)
+            if (speed_check < SPEED_CHECK_VALUE)
             {
-                //randomly selects 2 groups and randomy chooses one chunk from each of
-                //these 2 groups to swap
-                int num1= rand() % 4;
-                int num2 = rand()% 4;
-                int num3 = rand()% 3;
-                int num4 = rand() %3;
+                int char1= rand() % 4;
+                int char2 = rand()% 4;
+                int char3 = rand()% 3;
+                int char4 = rand() %3;
 
-                if(num1 ==num2)
+                while(char1 ==char2)
                 {
-                    int num2 = rand() % 4;
+                    char2 = rand() % 4;
                 }
-                swap(sem1,shmBUF,num1,num2);
+                swap(sem1,shmBUF,char1,char2);
               //  swap(chunk1,chunk2);
+            }
+            else
+            {
+                cout<<"no swap performed"<<endl;
             }
 
             exit(0);
@@ -179,11 +180,12 @@ int main(int argc, const char * argv[]) {
     for (int i = 0l; i <5 ; i++ )
     wait(0);
     
+    /*
     if ( shouldPerformSwap() ) {
 
         // generate random values 
         // swap 
-    }
+    }*/
     
     return 0;
 }
