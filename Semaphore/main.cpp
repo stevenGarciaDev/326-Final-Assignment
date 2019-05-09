@@ -29,10 +29,8 @@ void producer_proc(SEMAPHORE &, char *);
 void parent_cleanup(SEMAPHORE &, int);
 void consumer_proc(SEMAPHORE &, char *);
 
-const int MAX_INT = std::numeric_limits<int>::max();
 const int GROUP_CHUNK_SIZE = 512;
 const int SEGMENT_SIZE = GROUP_CHUNK_SIZE * 3;
-const int TOTAL_SEGMENT_SIZE = SEGMENT_SIZE * 4;
 const int SPEED_CHECK_VALUE = 5000;
 
 int requiredOperationsAmount;               // specifies how many times to go through loop
@@ -42,7 +40,7 @@ int requiredOperationsAmount;               // specifies how many times to go th
  create an array based on size,
  and initialize random char
 */
-void initRandomChar(char group[], int size, bool isUpperCase) {
+void initRandomChar(char *group, int size, bool isUpperCase) {
     int low;
     int high;
     if (isUpperCase) {
@@ -53,13 +51,18 @@ void initRandomChar(char group[], int size, bool isUpperCase) {
         high = 122;
     }
 
+    
+    cout << "the size is " << size << endl;
+    cout << "isUpperCase " << isUpperCase << endl;
+
     //cout << "the size of the group is " << size << endl;
 
     for (int i = 0; i < size; i++) {
         char randomChar = (rand() % 26) + low;
-        group[i] = randomChar;
-        //cout << "randomChar is " << randomChar << endl;
+        //cout << "value is " << group << endl;
+        cout << randomChar;
     }
+    cout << "\n" << endl;
 }
 
 /*
@@ -70,8 +73,7 @@ void initRandomChar(char group[], int size, bool isUpperCase) {
  else return true
 */
 bool shouldPerformSwap() {
-    int randomValue = MAX_INT;
-    randomValue = rand() % MAX_INT;
+    int randomValue = rand();
     if (randomValue < 5000) {
         return true;
     }
@@ -101,18 +103,17 @@ int main(int argc, const char * argv[]) {
     sem.V(shared3);
     sem.V(shared4);
 
-
     //fork 5 child processes
-    for(int i =0; i < 5; i++)
-    {
-        long childPID=fork();
-        if(childPID==0)// if it's child process, break out of the loop
-        {
-            sleep(5);
-            // which process
-            break;
-        }
-    }
+    // for(int i = 0; i < 5; i++)
+    // {
+    //     long childPID=fork();
+    //     if(childPID==0)// if it's child process, break out of the loop
+    //     {
+    //         sleep(5);
+    //         // which process
+    //         break;
+    //     }
+    // }
 
     // shmget, analogous to msgget,
     shmid1 = shmget(IPC_PRIVATE, SEGMENT_SIZE*sizeof(char), PERMS); // allocate shared memory
@@ -138,132 +139,131 @@ int main(int argc, const char * argv[]) {
     cin >> operationsAmount;
 
     // create 4 groups of shared memory
-    cout << "the segment size is " << SEGMENT_SIZE << endl;
 
     initRandomChar(sharedSegment1, SEGMENT_SIZE, false);
     initRandomChar(sharedSegment2, SEGMENT_SIZE, true);
     initRandomChar(sharedSegment3, SEGMENT_SIZE, true);
     initRandomChar(sharedSegment4, SEGMENT_SIZE, true);
 
-    //Create 5 processes
-    for (int i = 0; i < 5; i++)
-    {
-        if (fork() == 0)
-        {
-            printf("[child] pid %d from [parent] pid %d\n",getpid(),getppid());
-
-            srand(time(0));
-            int speed_check = rand();
-            cout << "Speed check value is " << speed_check << endl;
-            if (speed_check < SPEED_CHECK_VALUE)
-            {
-                char* firstSegment;
-                char* secondSegment;
-                int firstChunk_indexStart;
-                int secondChunk_indexStart;
-
-                // determine firstSegment
-                int randomNum = rand() % 4;
-
-                switch (randomNum) {
-                    case 0:
-                        firstSegment = sharedSegment1;
-                        break;
-                    case 1:
-                        firstSegment = sharedSegment2;
-                        break;
-                    case 2:
-                        firstSegment = sharedSegment3;
-                        break;
-                    case 3:
-                        firstSegment = sharedSegment4;
-                        break;
-                    default:
-                        cout << "invalid random num " << randomNum << endl;
-                        firstSegment = sharedSegment1;
-                        break;
-                }
-
-                // determine secondSegment
-                randomNum = rand() % 4;
-
-                switch (randomNum) {
-                    case 0:
-                        secondSegment = sharedSegment1;
-                        break;
-                    case 1:
-                        secondSegment = sharedSegment2;
-                        break;
-                    case 2:
-                        secondSegment = sharedSegment3;
-                        break;
-                    case 3:
-                        secondSegment = sharedSegment4;
-                        break;
-                    default:
-                        cout << "invalid random num " << randomNum << endl;
-                        secondSegment = sharedSegment1;
-                        break;
-                }
-
-                // determine firstChunk
-                randomNum = rand() % 3;
-
-                switch (randomNum) {
-                    case 0:
-                        firstChunk_indexStart = 0;
-                        break;
-                    case 1:
-                        firstChunk_indexStart = GROUP_CHUNK_SIZE;
-                        break;
-                    case 2:
-                        firstChunk_indexStart = GROUP_CHUNK_SIZE * 2;
-                        break;
-                    default:
-                        cout << "invalid random num " << randomNum << endl;
-                        firstChunk_indexStart = 0;
-                        break;
-                }
-
-                // determine secondChunk
-                randomNum = rand() % 3;
-
-                 switch (randomNum) {
-                    case 0:
-                        secondChunk_indexStart = 0;
-                        break;
-                    case 1:
-                        secondChunk_indexStart = GROUP_CHUNK_SIZE;
-                        break;
-                    case 2:
-                        secondChunk_indexStart = GROUP_CHUNK_SIZE * 2;
-                        break;
-                    default:
-                        cout << "invalid random num " << randomNum << endl;
-                        secondChunk_indexStart = 0;
-                        break;
-                }
-
-                // perform swap
-                for (int n = 0; n < GROUP_CHUNK_SIZE; n++) {
-                    cout << "the value of firstSegment is " << firstSegment << endl;
-                    cout << "the memory address of firstSegment is " << &firstSegment << endl;
-                    //char temp = *(firstSegment + firstChunk_indexStart + n);
-                    //*(firstSegment + firstChunk_indexStart + n) = *(secondSegment + secondChunk_indexStart + n)
-                    //*(secondSegment + secondChunk_indexStart + n) = temp;
-                }
-
-            }
-            else
-            {
-                cout<<"no swap performed"<<endl;
-            }
-
-            exit(0);
-        }
-    }
-
-    wait(0);
+    // //Create 5 processes
+    // for (int i = 0; i < 5; i++)
+    // {
+    //     if (fork() == 0)
+    //     {
+    //         printf("[child] pid %d from [parent] pid %d\n",getpid(),getppid());
+    //
+    //         srand(time(0));
+    //         int speed_check = rand();
+    //         cout << "Speed check value is " << speed_check << endl;
+    //         if (speed_check < SPEED_CHECK_VALUE)
+    //         {
+    //             char* firstSegment;
+    //             char* secondSegment;
+    //             int firstChunk_indexStart;
+    //             int secondChunk_indexStart;
+    //
+    //             // determine firstSegment
+    //             int randomNum = rand() % 4;
+    //
+    //             switch (randomNum) {
+    //                 case 0:
+    //                     firstSegment = sharedSegment1;
+    //                     break;
+    //                 case 1:
+    //                     firstSegment = sharedSegment2;
+    //                     break;
+    //                 case 2:
+    //                     firstSegment = sharedSegment3;
+    //                     break;
+    //                 case 3:
+    //                     firstSegment = sharedSegment4;
+    //                     break;
+    //                 default:
+    //                     cout << "invalid random num " << randomNum << endl;
+    //                     firstSegment = sharedSegment1;
+    //                     break;
+    //             }
+    //
+    //             // determine secondSegment
+    //             randomNum = rand() % 4;
+    //
+    //             switch (randomNum) {
+    //                 case 0:
+    //                     secondSegment = sharedSegment1;
+    //                     break;
+    //                 case 1:
+    //                     secondSegment = sharedSegment2;
+    //                     break;
+    //                 case 2:
+    //                     secondSegment = sharedSegment3;
+    //                     break;
+    //                 case 3:
+    //                     secondSegment = sharedSegment4;
+    //                     break;
+    //                 default:
+    //                     cout << "invalid random num " << randomNum << endl;
+    //                     secondSegment = sharedSegment1;
+    //                     break;
+    //             }
+    //
+    //             // determine firstChunk
+    //             randomNum = rand() % 3;
+    //
+    //             switch (randomNum) {
+    //                 case 0:
+    //                     firstChunk_indexStart = 0;
+    //                     break;
+    //                 case 1:
+    //                     firstChunk_indexStart = GROUP_CHUNK_SIZE;
+    //                     break;
+    //                 case 2:
+    //                     firstChunk_indexStart = GROUP_CHUNK_SIZE * 2;
+    //                     break;
+    //                 default:
+    //                     cout << "invalid random num " << randomNum << endl;
+    //                     firstChunk_indexStart = 0;
+    //                     break;
+    //             }
+    //
+    //             // determine secondChunk
+    //             randomNum = rand() % 3;
+    //
+    //              switch (randomNum) {
+    //                 case 0:
+    //                     secondChunk_indexStart = 0;
+    //                     break;
+    //                 case 1:
+    //                     secondChunk_indexStart = GROUP_CHUNK_SIZE;
+    //                     break;
+    //                 case 2:
+    //                     secondChunk_indexStart = GROUP_CHUNK_SIZE * 2;
+    //                     break;
+    //                 default:
+    //                     cout << "invalid random num " << randomNum << endl;
+    //                     secondChunk_indexStart = 0;
+    //                     break;
+    //             }
+    //
+    //             // perform swap
+    //             for (int n = 0; n < GROUP_CHUNK_SIZE; n++) {
+    //                 cout << "the value of firstSegment is " << firstSegment << endl;
+    //                 cout << "the memory address of firstSegment is " << &firstSegment << endl;
+    //                 //char temp = *(firstSegment + firstChunk_indexStart + n);
+    //                 //*(firstSegment + firstChunk_indexStart + n) = *(secondSegment + secondChunk_indexStart + n)
+    //                 //*(secondSegment + secondChunk_indexStart + n) = temp;
+    //             }
+    //
+    //         }
+    //         else
+    //         {
+    //             cout<<"no swap performed"<<endl;
+    //         }
+    //
+    //         exit(0);
+    //     }
+    // }
+    //
+    // wait(0);
 
     return 0;
 }
