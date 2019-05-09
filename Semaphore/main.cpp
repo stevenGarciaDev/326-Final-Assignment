@@ -99,7 +99,20 @@ int main(int argc, const char * argv[]) {
     sem.V(shared2);
     sem.V(shared3);
     sem.V(shared4);
-    
+
+
+    //fork 5 child processes
+    for(int i =0; i < 5; i++)
+    {
+        childPID=fork();
+        if(childPID==0)// if it's child process, break out of the loop
+        {
+            sleep(10);
+            t=i;//which process
+            break;
+        }
+    }
+
     // shmget, analogous to msgget,
     shmid1 = shmget(IPC_PRIVATE, SEGMENT_SIZE*sizeof(char), PERMS); // allocate shared memory
     sharedSegment1 = (char *)shmat(shmid1, 0, SHM_RND);    // (attach to shared memory) now make it available to this program
@@ -130,6 +143,41 @@ int main(int argc, const char * argv[]) {
     initRandomChar(sharedSegment2, SEGMENT_SIZE, true);
     initRandomChar(sharedSegment3, SEGMENT_SIZE, true);
     initRandomChar(sharedSegment4, SEGMENT_SIZE, true);
+    
+    //Create 5 processes
+    for (int i=0; i< 5 ; i++)
+    {
+        if (fork() == 0) 
+        {
+            printf("[child] pid %d from [parent] pid %d\n",getpid(),getppid());
+
+            //Each process generate a random 32-bit random integer
+            //create a random integer between 0 and 2^31 -1
+            srand(time(0));
+            speed_check = rand();
+            if (speed_check < 5000)
+            {
+                //randomly selects 2 groups and randomy chooses one chunk from each of
+                //these 2 groups to swap
+                int num1= rand() % 4;
+                int num2 = rand()% 4;
+                int num3 = rand()% 3;
+                int num4 = rand() %3;
+
+                if(num1 ==num2)
+                {
+                    int num2 = rand() % 4;
+                }
+                swap(sem1,shmBUF,num1,num2);
+              //  swap(chunk1,chunk2);
+            }
+
+            exit(0);
+        }
+    }
+    
+    for (int i = 0l; i <5 ; i++ )
+    wait(0);
     
     if ( shouldPerformSwap() ) {
 
