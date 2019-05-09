@@ -20,6 +20,7 @@
 #include <stdlib.h>     /* srand, rand */
 #include <time.h>       /* time */
 #include "semaphore.h"
+#include semaphore.cpp
 
 using namespace std;
 
